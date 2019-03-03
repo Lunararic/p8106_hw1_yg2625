@@ -1,0 +1,38 @@
+---
+title: "p8106_hw1_yg2625"
+author: "Yue Gu"
+date: "March 3, 2019"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(caret)
+library(boot)
+```
+
+# Import data
+```{r}
+train_data = read.csv("./data/solubility_train.csv") %>% 
+  janitor::clean_names()
+test_data = read.csv("./data/solubility_test.csv") %>% 
+  janitor::clean_names()
+```
+
+# Fit linear model on the training data
+```{r}
+fit_lm_tr = lm(solubility ~ .， data = train_data)
+summary(fit_lm_tr)
+```
+
+# Calculate the mean square error using the test data
+```{r}
+pred_lm_tr = predict(fit_lm_tr, test_data)
+mse_test = mean((pred_lm_tr - test_data$solubility)^2);mse_test
+```
+Hence, the MSE using test data is `r mse_test`.
+
+# 
+
+
