@@ -121,3 +121,14 @@ mse_pcr = mean((pred_resp_pcr - test_data$solubility)^2); mse_pcr
 ```
 
 Thus, the mean square error for pcr model is `r mse_pcr`, along with M = 150 which was selected based on its smallest CV error.
+
+# (e) Discussion
+```{r}
+cbind(c("Model", "LS", "Ridge", "Lasso", "PCR"), c("MSE", mse_test, mse_ridge, mse_lasso, mse_pcr)) %>% 
+  knitr::kable()
+```
+
+Based on the R result, we observe that Lasso model produced the smallest mean square error(MSE) while Least Squares model produced the highest MSE. Thus, we could conclude that Lasso produced the best model fit among 4 different methods when building models using CV for prediction to solubility of compounds using chmical structures. 
+
+Moreover, Ridge, PCR and Lasso all produced model with smaller MSE compared to LS for the reason that these techniques involved regulations and dimension reductions to decrease the variability of the predictors in the model, hence, they produced model with smaller MSE compared to LS.
+
