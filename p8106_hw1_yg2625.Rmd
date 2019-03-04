@@ -44,6 +44,7 @@ Hence, the MSE using test data is `r mse_test`.
 
 ## Fit ridge regression model on the training data
 ```{r}
+set.seed(1)
 train_data = na.omit(train_data)
 x = model.matrix(solubility ~ ., train_data)[, -1]
 y = train_data$solubility
@@ -53,7 +54,7 @@ mat_coef = coef(ridge_mod)
 dim(mat_coef)
 
 # Cross-validation
-set.seed(1)
+
 cv_ridge = cv.glmnet(x, y,
                      alpha = 0,
                      lambda = exp(seq(-5, 5, length = 500)),
@@ -65,7 +66,9 @@ plot_glmnet(ridge_mod, xvar = "rlambda")
 
 # Predict response in final model
 best_lambda = cv_ridge$lambda.min; best_lambda
-pred_resp_ridge = predict(ridge_mod, s = best_lambda, newx = model.matrix(solubility ~ ., test_data)[, -1], type = "response")
+pred_resp_ridge = predict(ridge_mod, newx = model.matrix(solubility ~ ., test_data)[, -1], s = best_lambda, type = "response"); pred_resp_ridge
+
+# MSE
 mse_ridge = mean((pred_resp_ridge - test_data$solubility)^2); mse_ridge
 ```
 
@@ -74,4 +77,26 @@ Based on the result, the MSE for ridge regression is `r mse_ridge`.
 # (c) Fit a lasso model on the training data, with lambda chosen by cross-validation. Report the test error, along with the number of non-zero coefficient estimates.
 
 ## Fit lasso model on the training data
+```{r}
+set.seed(1)
+cv_lasso = cv.glmnet(x, y, alpha = 1, lambda = exp(seq(-8, -1, length = 500)))
+
+# Cross-validation
+plot(cv_lasso)
+cv_lasso$lambda.min
+
+# Trace plot
+plot_glmnet(cv_lasso$glmnet.fit)
+
+# Predict response in the final model
+pred_resp_lasso = predict(cv_lasso, newx = model.matrix(solubility ~ ., test_data)[, -1], s = cv_lasso$lambda.min, type = "response"); pred_resp_lasso
+
+# MSE
+mse_lasso = mean((pred_resp_lasso - test_data$solubility)^2); mse_lasso
+
+# Number of non-zero coefficient estimates
+dim(as.matrix(predict(cv_lasso, s = "lambda.min", type = "coefficients")@x))
+```
+
+Thus, we know the MSE for lasso model is `r mse_lasso`, and the number of non-zero coefficient estimates is 144.
 
