@@ -2,7 +2,9 @@
 title: "p8106_hw1_yg2625"
 author: "Yue Gu"
 date: "March 3, 2019"
-output: github_document
+output: 
+  pdf_document:
+    latex_engine: xelatex
 ---
 
 ```{r setup, include=FALSE}
@@ -10,6 +12,10 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(caret)
 library(boot)
+library(ISLR)
+library(glmnet)
+library(corrplot)
+library(plotmo)
 ```
 
 # Import data
@@ -20,19 +26,52 @@ test_data = read.csv("./data/solubility_test.csv") %>%
   janitor::clean_names()
 ```
 
-# Fit linear model on the training data
+# (a) Fit a linear model using least squares on the training data and calculate the mean square error using the test data.
+## Fit linear model on the training data
 ```{r}
 fit_lm_tr = lm(solubility ~ .， data = train_data)
 summary(fit_lm_tr)
 ```
 
-# Calculate the mean square error using the test data
+## Calculate the mean square error using the test data
 ```{r}
 pred_lm_tr = predict(fit_lm_tr, test_data)
 mse_test = mean((pred_lm_tr - test_data$solubility)^2);mse_test
 ```
 Hence, the MSE using test data is `r mse_test`.
 
-# 
+# (b) Fit a ridge regression model on the training data, with lambda chosen by cross-validation. Report the test error.
 
+## Fit ridge regression model on the training data
+```{r}
+train_data = na.omit(train_data)
+x = model.matrix(solubility ~ ., train_data)[, -1]
+y = train_data$solubility
+
+ridge_mod = glmnet(x, y, alpha = 0, lambda = exp(seq(-5, 5, length = 500)))
+mat_coef = coef(ridge_mod)
+dim(mat_coef)
+
+# Cross-validation
+set.seed(1)
+cv_ridge = cv.glmnet(x, y,
+                     alpha = 0,
+                     lambda = exp(seq(-5, 5, length = 500)),
+                     type.measure = "mse")
+plot(cv_ridge)
+
+# Trace plot
+plot_glmnet(ridge_mod, xvar = "rlambda")
+
+# Predict response in final model
+best_lambda = cv_ridge$lambda.min; best_lambda
+pred_resp_ridge = predict(ridge_mod, s = best_lambda, newx = model.matrix(solubility ~ ., test_data)[, -1], type = "response")
+mse_ridge = mean((pred_resp_ridge - test_data$solubility)^2); mse_ridge
+```
+
+Based on the result, the MSE for ridge regression is `r mse_ridge`.
+
+# (c) Fit a lasso model on the training data, with lambda chosen by cross-validation. Report the test error, along with the number of non-zero coefficient estimates.
+
+## Fit lasso model on the training data
 
